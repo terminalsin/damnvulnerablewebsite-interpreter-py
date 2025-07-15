@@ -13,9 +13,11 @@ DamnVulnerableWebsite - Python Interpreter </h1>
 <img alt="NPM Version" src="https://img.shields.io/npm/v/%40damnvulnerablewebsite%2Finterpreter-py?style=flat-square">
 </div>
 </div>
-<br>
+<br/>
+
 A deliberately vulnerable Python code interpreter library for TypeScript, designed for **educational and security testing purposes**.
-<br>
+
+<br/>
 
 > [!CAUTION]
 >  ⚠️ SECURITY WARNING
