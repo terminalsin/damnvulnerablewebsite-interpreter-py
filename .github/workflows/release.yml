@@ -1,0 +1,117 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'package.json'
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.check.outputs.changed }}
+      new-version: ${{ steps.check.outputs.version }}
+      tag-exists: ${{ steps.check.outputs.tag-exists }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Need to fetch previous commit to compare
+          
+      - name: Check version change
+        id: check
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Get previous version from package.json in the previous commit
+          git checkout HEAD~1 -- package.json 2>/dev/null || echo "No previous package.json found"
+          PREV_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
+          echo "Previous version: $PREV_VERSION"
+          
+          # Restore current package.json
+          git checkout HEAD -- package.json
+          
+          # Check if version changed
+          if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
+            echo "Version changed from $PREV_VERSION to $CURRENT_VERSION"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "Version unchanged"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check if tag already exists
+          if git rev-parse "v$CURRENT_VERSION" >/dev/null 2>&1; then
+            echo "Tag v$CURRENT_VERSION already exists"
+            echo "tag-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag-exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  create-release:
+    needs: check-version
+    if: needs.check-version.outputs.version-changed == 'true' && needs.check-version.outputs.tag-exists == 'false'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write # Required to create releases
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ needs.check-version.outputs.new-version }}"
+          echo "Extracting changelog for version $VERSION"
+          
+          # Try to extract changelog section for this version
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract changelog section between version headers
+            CHANGELOG=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+            if [ -z "$CHANGELOG" ]; then
+              # Try alternative format
+              CHANGELOG=$(sed -n "/## $VERSION/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
+            fi
+          fi
+          
+          # If no changelog found, create a simple one
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Release version $VERSION"
+          fi
+          
+          # Save changelog to output (handle multiline)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.new-version }}"
+          CHANGELOG="${{ steps.changelog.outputs.changelog }}"
+          PRERELEASE=""
+          
+          # Check if this is a prerelease (contains -, alpha, beta, rc)
+          if [[ "$VERSION" == *"-"* ]] || [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+            PRERELEASE="--prerelease"
+          fi
+          
+          # Create the release
+          gh release create "v$VERSION" \
+            --title "Release v$VERSION" \
+            --notes "## Changes in v$VERSION
+
+          $CHANGELOG
+
+          ---
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v$VERSION...HEAD" \
+            $PRERELEASE 
