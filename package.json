@@ -1,6 +1,6 @@
 {
     "name": "@damnvulnerablewebsite/interpreter-py",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "This package is designed to prototype an interpreter library for python code importer in TypeScript that is designed to be vulnerable.",
     "repository": {
         "url": "https://github.com/terminalsin/damnvulnerablewebsite-interpreter-py"
