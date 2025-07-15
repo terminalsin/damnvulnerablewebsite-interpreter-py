@@ -1,144 +1,142 @@
-name: Auto Release and Publish
+name: 🚀 Release & Publish
 
 on:
   push:
-    branches: [ main, master ]
-    paths:
-      - 'package.json'
+    branches: [main, master]
+    paths: ['package.json']
 
 jobs:
-  check-version:
+  detect-changes:
+    name: 🔍 Version Change Detection
     runs-on: ubuntu-latest
     outputs:
       version-changed: ${{ steps.check.outputs.changed }}
       new-version: ${{ steps.check.outputs.version }}
-      tag-exists: ${{ steps.check.outputs.tag-exists }}
+      is-prerelease: ${{ steps.check.outputs.prerelease }}
     
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout with history
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Need to fetch previous commit to compare
+          fetch-depth: 2
           
-      - name: Check version change
+      - name: 🔍 Detect version changes
         id: check
         run: |
-          # Get current version from package.json
+          # Extract current version
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
+          echo "📦 Current version: $CURRENT_VERSION"
           
-          # Get previous version from package.json in the previous commit
-          git checkout HEAD~1 -- package.json 2>/dev/null || echo "No previous package.json found"
+          # Extract previous version
+          git checkout HEAD~1 -- package.json 2>/dev/null || echo "No previous package.json"
           PREV_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
-          echo "Previous version: $PREV_VERSION"
+          echo "📦 Previous version: $PREV_VERSION"
           
           # Restore current package.json
           git checkout HEAD -- package.json
           
-          # Check if version changed
+          # Check for changes
           if [ "$CURRENT_VERSION" != "$PREV_VERSION" ]; then
-            echo "Version changed from $PREV_VERSION to $CURRENT_VERSION"
+            echo "✅ Version changed: $PREV_VERSION → $CURRENT_VERSION"
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            
+            # Check if prerelease
+            if [[ "$CURRENT_VERSION" == *"-"* ]]; then
+              echo "🔍 Detected prerelease version"
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "prerelease=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "Version unchanged"
+            echo "ℹ️ No version change detected"
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
-          
-          # Check if tag already exists
-          if git rev-parse "v$CURRENT_VERSION" >/dev/null 2>&1; then
-            echo "Tag v$CURRENT_VERSION already exists"
-            echo "tag-exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "tag-exists=false" >> $GITHUB_OUTPUT
-          fi
 
-  release-and-publish:
-    needs: check-version
-    if: needs.check-version.outputs.version-changed == 'true' && needs.check-version.outputs.tag-exists == 'false'
+  release-publish:
+    name: 🚀 Release & Publish to NPM
+    needs: detect-changes
+    if: needs.detect-changes.outputs.version-changed == 'true'
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write # Required to create releases
-      id-token: write # Required for npm provenance
+      contents: write
+      id-token: write
     
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
         
-      - name: Setup Node.js
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
           
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
         
-      - name: Run tests
+      - name: 🧪 Run tests
         run: npm run test:ci
         
-      - name: Build package
+      - name: 🏗️ Build package
         run: npm run build
         
-      - name: Extract changelog for version
-        id: changelog
+      - name: 📝 Generate release notes
+        id: notes
         run: |
-          VERSION="${{ needs.check-version.outputs.new-version }}"
-          echo "Extracting changelog for version $VERSION"
+          VERSION="${{ needs.detect-changes.outputs.new-version }}"
+          NOTES="🎉 **Release v$VERSION**"
           
-          # Try to extract changelog section for this version
+          # Try to extract changelog
           if [ -f "CHANGELOG.md" ]; then
-            # Extract changelog section between version headers
             CHANGELOG=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
-            if [ -z "$CHANGELOG" ]; then
-              # Try alternative format
-              CHANGELOG=$(sed -n "/## $VERSION/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
+            [ -z "$CHANGELOG" ] && CHANGELOG=$(sed -n "/## $VERSION/,/## /p" CHANGELOG.md | sed '$d' | tail -n +2)
+            
+            if [ -n "$CHANGELOG" ]; then
+              NOTES="$NOTES
+
+          ## 📋 What's Changed
+          $CHANGELOG"
             fi
           fi
           
-          # If no changelog found, create a simple one
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG="Release version $VERSION"
-          fi
+          NOTES="$NOTES
+
+          ---
+          **🔗 View Changes:** [\`v$VERSION\`](https://github.com/${{ github.repository }}/compare/v$VERSION...HEAD)"
           
-          # Save changelog to output (handle multiline)
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-      - name: Create GitHub Release
+      - name: 🏷️ Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ needs.check-version.outputs.new-version }}"
-          CHANGELOG="${{ steps.changelog.outputs.changelog }}"
-          PRERELEASE=""
+          VERSION="${{ needs.detect-changes.outputs.new-version }}"
+          PRERELEASE="${{ needs.detect-changes.outputs.is-prerelease }}"
           
-          # Check if this is a prerelease (contains -, alpha, beta, rc)
-          if [[ "$VERSION" == *"-"* ]] || [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
-            PRERELEASE="--prerelease"
-          fi
+          RELEASE_FLAGS=""
+          [ "$PRERELEASE" = "true" ] && RELEASE_FLAGS="--prerelease"
           
-          # Create the release
           gh release create "v$VERSION" \
-            --title "Release v$VERSION" \
-            --notes "## Changes in v$VERSION
-
-          $CHANGELOG
-
-          ---
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v$VERSION...HEAD" \
-            $PRERELEASE
+            --title "🚀 Release v$VERSION" \
+            --notes "${{ steps.notes.outputs.notes }}" \
+            $RELEASE_FLAGS
             
-      - name: Verify package contents
+      - name: ✅ Verify package
         run: |
+          echo "📦 Package contents:"
           npm pack --dry-run
+          echo "📁 Build output:"
           ls -la dist/
           
-      - name: Publish to NPM
-        run: npm publish --provenance --access public
+      - name: 📤 Publish to NPM
+        run: |
+          echo "🚀 Publishing v${{ needs.detect-changes.outputs.new-version }} to NPM..."
+          npm publish --provenance --access public
+          echo "✅ Successfully published to NPM!"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
