@@ -3,10 +3,20 @@
 <!-- TOC --><a name="damnvulnerableinterpreter-py"></a>
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
-<h1> DamnVulnerableWebsite - Python Interpreter </h1>
+<div style="display: flex; align-items: center; gap: 15px;">
+<img src=".docs/icon.png" width="100px">
+<div>
+<h1 style="margin: 0;"> 
+DamnVulnerableWebsite - Python Interpreter </h1>
 
 <img alt="NPM License" src="https://img.shields.io/npm/l/%40damnvulnerablewebsite%2Finterpreter-py?style=flat-square">
+<img alt="NPM Version" src="https://img.shields.io/npm/v/%40damnvulnerablewebsite%2Finterpreter-py?style=flat-square">
+</div>
+</div>
 
+
+
+---
 
 - [⚠️ SECURITY WARNING](#️-security-warning)
 - [📋 Features](#-features)
