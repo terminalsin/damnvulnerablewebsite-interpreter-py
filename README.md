@@ -4,7 +4,7 @@
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 <div style="display: flex; align-items: center; gap: 15px;">
-<img src=".docs/icon.png" width="100px">
+<img src="https://raw.githubusercontent.com/terminalsin/damnvulnerablewebsite-interpreter-py/refs/heads/master/.docs/icon.png" width="100px">
 <div>
 <h1 style="margin: 0;"> 
 DamnVulnerableWebsite - Python Interpreter </h1>
