@@ -18,8 +18,6 @@ DamnVulnerableWebsite - Python Interpreter </h1>
 
 ---
 
-- [⚠️ SECURITY WARNING](#️-security-warning)
-- [📋 Features](#-features)
 - [🚀 Installation](#-installation)
   - [Prerequisites](#prerequisites)
 - [📖 Quick Start](#-quick-start)
@@ -47,10 +45,8 @@ DamnVulnerableWebsite - Python Interpreter </h1>
   - [6. Resource Exhaustion](#6-resource-exhaustion)
 - [🧪 Testing](#-testing)
 - [📜 Scripts](#-scripts)
-- [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 - [⚖️ Legal Disclaimer](#️-legal-disclaimer)
-- [🎓 Educational Use Cases](#-educational-use-cases)
 - [🔗 Inspired from](#-inspired-from)
 
 <!-- TOC end -->
@@ -59,34 +55,11 @@ DamnVulnerableWebsite - Python Interpreter </h1>
 A deliberately vulnerable Python code interpreter library for TypeScript, designed for **educational and security testing purposes**.
 
 <!-- TOC --><a name="-security-warning"></a>
-## ⚠️ SECURITY WARNING
-
-**🚨 THIS PACKAGE CONTAINS INTENTIONAL VULNERABILITIES FOR EDUCATIONAL PURPOSES ONLY!**
-
-**DO NOT USE IN PRODUCTION ENVIRONMENTS!**
-
-This package is designed to demonstrate common security vulnerabilities in code interpretation systems. It includes:
-- Command injection vulnerabilities
-- Arbitrary code execution without sandboxing
-- File system access bypass
-- Input sanitization bypass
-- Environment variable injection
-- Information disclosure
-- Resource exhaustion vulnerabilities
-- Insufficient error handling
-
-<!-- TOC --><a name="-features"></a>
-## 📋 Features
-
-This TypeScript package provides:
-- ✅ Receives Python code as input
-- ✅ Lints Python code and checks for basic errors
-- ✅ Interprets Python code and streams output back to TypeScript
-- ✅ Multiple execution modes (safe, testing, educational, dangerous)
-- ✅ Real-time streaming output
-- ✅ Event-driven architecture
-- ✅ TypeScript support with full type definitions
-- ⚠️ Deliberately vulnerable implementation for security education
+> [!CAUTION]
+>  ⚠️ SECURITY WARNING
+> **🚨 THIS PACKAGE CONTAINS INTENTIONAL VULNERABILITIES FOR EDUCATIONAL PURPOSES ONLY!**
+> **DO NOT USE IN PRODUCTION ENVIRONMENTS!**
+> This package is designed to demonstrate common security vulnerabilities in code interpretation systems. 
 
 <!-- TOC --><a name="-installation"></a>
 ## 🚀 Installation
@@ -325,10 +298,6 @@ npm run dev     # Run example in development mode
 - `npm start` - Run compiled JavaScript
 - `npm run clean` - Remove compiled files
 
-<!-- TOC --><a name="-contributing"></a>
-## 🤝 Contributing
-
-This is an educational project. Contributions that add new vulnerabilities or improve the educational value are welcome!
 
 <!-- TOC --><a name="-license"></a>
 ## 📄 License
@@ -342,15 +311,6 @@ This software is provided for educational and security research purposes only. T
 
 **DO NOT USE THIS SOFTWARE IN PRODUCTION ENVIRONMENTS OR FOR MALICIOUS PURPOSES.**
 
-<!-- TOC --><a name="-educational-use-cases"></a>
-## 🎓 Educational Use Cases
-
-- Security training and awareness
-- Penetration testing practice
-- Code review training
-- Secure coding education
-- Understanding common vulnerabilities
-- Testing security tools and scanners
 
 <!-- TOC --><a name="-inspired-from"></a>
 ## 🔗 Inspired from
