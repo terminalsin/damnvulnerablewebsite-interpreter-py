@@ -14,9 +14,15 @@ DamnVulnerableWebsite - Python Interpreter </h1>
 </div>
 </div>
 
-
+A deliberately vulnerable Python code interpreter library for TypeScript, designed for **educational and security testing purposes**.
 
 ---
+> [!CAUTION]
+>  ⚠️ SECURITY WARNING
+> **🚨 THIS PACKAGE CONTAINS INTENTIONAL VULNERABILITIES FOR EDUCATIONAL PURPOSES ONLY!**
+> **DO NOT USE IN PRODUCTION ENVIRONMENTS!**
+> This package is designed to demonstrate common security vulnerabilities in code interpretation systems. 
+
 
 - [🚀 Installation](#-installation)
   - [Prerequisites](#prerequisites)
@@ -52,14 +58,8 @@ DamnVulnerableWebsite - Python Interpreter </h1>
 <!-- TOC end -->
 
 
-A deliberately vulnerable Python code interpreter library for TypeScript, designed for **educational and security testing purposes**.
 
-<!-- TOC --><a name="-security-warning"></a>
-> [!CAUTION]
->  ⚠️ SECURITY WARNING
-> **🚨 THIS PACKAGE CONTAINS INTENTIONAL VULNERABILITIES FOR EDUCATIONAL PURPOSES ONLY!**
-> **DO NOT USE IN PRODUCTION ENVIRONMENTS!**
-> This package is designed to demonstrate common security vulnerabilities in code interpretation systems. 
+
 
 <!-- TOC --><a name="-installation"></a>
 ## 🚀 Installation
